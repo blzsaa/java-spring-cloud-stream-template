@@ -1,0 +1,107 @@
+asyncapi: '2.0.0'
+info:
+  title: Streetlights API
+  version: '1.0.0'
+  description: |
+    The Smartylighting Streetlights API allows you
+    to remotely manage the city lights.
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0'
+
+servers:
+  production:
+    url: kafka.bootstrap:{port}
+    protocol: kafka
+    variables:
+      port:
+        default: '9092'
+        enum:
+          - '9092'
+          - '9093'
+
+channels:
+  event.lighting.measured:
+#    parameters:
+#      dummy:
+#        description: The ID of the new dummy message.
+#        schema:
+#          type: string
+#          format: date
+#      dummy2:
+#        description: The ID of the new dummy message.
+#        schema:
+#          type: string
+    publish:
+      bindings:
+        kafka:
+          groupId: my-group
+      operationId: readLightMeasurement
+      message:
+        $ref: '#/components/messages/lightMeasured'
+    subscribe:
+      operationId: updateLightMeasurement
+      message:
+        $ref: '#/components/messages/lightMeasured'
+components:
+  messages:
+    lightMeasured:
+      summary: Inform about environmental lighting conditions for a particular streetlight.
+      payload:
+        $ref: "#/components/schemas/lightMeasuredPayload"
+  schemas:
+    lightMeasuredPayload:
+      type: object
+      properties:
+        lumens:
+          type: integer
+          minimum: 0
+          description: Light intensity measured in lumens.
+        sentAt:
+          type: string
+          format: date-time
+          description: Date and time when the message was sent.
+        integer:
+          type: integer
+          format: int32
+        long:
+          type: integer
+          format: int64
+        integerDefault:
+          type: integer
+        #        format: int64
+        float:
+          type: number
+          format: float
+        double:
+          type: number
+          format: double
+        number:
+          type: number
+        stringEnum:
+          type: string
+          enum: [
+              "userPassword"
+          ]
+        #        format:
+        byte:
+          type: string
+          format: byte
+        binary:
+          type: string
+          format: binary
+        boolean:
+          type: boolean
+        #        format:
+        date:
+          type: string
+          format: date
+        dateTime:
+          type: string
+          format: date-time
+        password:
+          type: string
+          format: password
+        email:
+          type: string
+          format: email
