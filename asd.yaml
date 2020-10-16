@@ -1,3 +1,33 @@
+fix: Generate correct fields using both type and format part from data type formats
+
+  **Description**
+  * Reads both type and format of data type to generate java field from it,
+following the logic below:
+
+  | type    | format    | Java class     | fmt | sample                       |
+  |---------|-----------|----------------|-----|------------------------------|
+  | string  | date      | LocalDate      | %s  | 2000-12-31                   |
+  | string  | date-time | OffsetDateTime | %s  | 2000-12-31T23:59:59+01:00    |
+  | string  | byte      | byte[]         | %s  | U3dhZ2dlciByb2Nrcw==         |
+  | string  | binary    | byte[]         | %s  | base64-encoded file contents |
+  | string  | undefined | String         | %s  | string                       |
+  | integer | int32     | Integer        | %d  | 1                            |
+  | integer | int64     | Long           | %d  | 1L                           |
+  | integer |           | Integer        | %d  | 1                            |
+  | number  | float     | Float          | %f  | 1.1F                         |
+  | number  | double    | Double         | %f  | 1.1                          |
+  | number  |           | BigDecimal     | %s  | 100.1                        |
+  | boolean |           | Boolean        | %s  | true                         |
+  | null    |           | String         | %s  | "string"                     |
+  * In case of unknown format (e.g. type: string, format: email) it will generate
+  default java class for given type (String).
+  * See: https://github.com/asyncapi/asyncapi/blob/master/versions/2.0.0/asyncapi.md#data-type-formats
+
+  ** Test **
+
+-  create _dataTypes.yaml_ with content:
+
+  ```
 asyncapi: '2.0.0'
 info:
   title: Streetlights API
@@ -22,16 +52,6 @@ servers:
 
 channels:
   event.lighting.measured:
-#    parameters:
-#      dummy:
-#        description: The ID of the new dummy message.
-#        schema:
-#          type: string
-#          format: date
-#      dummy2:
-#        description: The ID of the new dummy message.
-#        schema:
-#          type: string
     publish:
       bindings:
         kafka:
@@ -105,3 +125,11 @@ components:
         email:
           type: string
           format: email
+  ```
+
+- run: `ag dataTypes.yaml java-spring-cloud-stream-template`
+- assert that generated LightMeasuredPayload contains all generatable java fields, e.g.
+
+
+  **Related issue(s)**
+  Resolves #57
